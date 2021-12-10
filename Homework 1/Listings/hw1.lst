@@ -1,0 +1,205 @@
+C51 COMPILER V9.60.0.0   HW1                                                               10/04/2021 19:20:30 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE HW1
+OBJECT MODULE PLACED IN .\Objects\hw1.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE hw1.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\hw1.l
+                    -st) TABS(2) OBJECT(.\Objects\hw1.obj)
+
+line level    source
+
+   1          #include <REG51F.H>
+   2          #include <stdio.h>
+   3          
+   4          #define ARRAY_SIZE 5
+   5          
+   6          struct mf_list
+   7          {
+   8              //These global variables can be seen in memory
+   9              int arr[ARRAY_SIZE];
+  10              int index;
+  11              int currentSize;
+  12          };
+  13          
+  14          int append_left(int input, struct mf_list *list)
+  15          {
+  16   1          unsigned int i;
+  17   1          if (list->currentSize == ARRAY_SIZE)
+  18   1              return -1;
+  19   1          for (i = list->currentSize; i > 0; i--)
+  20   1          {
+  21   2              list->arr[i] = list->arr[i - 1];
+  22   2          }
+  23   1      
+  24   1          list->arr[0] = input;
+  25   1      
+  26   1          list->currentSize++;
+  27   1      
+  28   1          return list->currentSize;
+  29   1      }
+  30          
+  31          int append_right(int input, struct mf_list *list)
+  32          {
+  33   1          if (list->currentSize == ARRAY_SIZE)
+  34   1              return -1;
+  35   1      
+  36   1          list->arr[list->currentSize] = input;
+  37   1      
+  38   1          list->currentSize++;
+  39   1      
+  40   1          return list->currentSize;
+  41   1      }
+  42          
+  43          int pop_left(struct mf_list *list)
+  44          {
+  45   1          unsigned int i;
+  46   1          if (list->currentSize == 0)
+  47   1              return -1;
+  48   1      
+  49   1          for (i = 0; i < (list->currentSize - 1); i++)
+  50   1          {
+  51   2              list->arr[i] = list->arr[i + 1];
+  52   2          }
+  53   1      
+  54   1          list->arr[--list->currentSize] = 0;
+C51 COMPILER V9.60.0.0   HW1                                                               10/04/2021 19:20:30 PAGE 2   
+
+  55   1      
+  56   1          return list->currentSize;
+  57   1      }
+  58          
+  59          int pop_right(struct mf_list *list)
+  60          {
+  61   1          if (list->currentSize == 0)
+  62   1              return -1;
+  63   1      
+  64   1          list->arr[--list->currentSize] = 0;
+  65   1      
+  66   1          return list->currentSize;
+  67   1      }
+  68          
+  69          int length(struct mf_list *list)
+  70          {
+  71   1          return list->currentSize;
+  72   1      }
+  73          
+  74          int seek_left(struct mf_list *list)
+  75          {
+  76   1          if (list->currentSize == 0)
+  77   1              return -1;
+  78   1      
+  79   1          list->index--;
+  80   1      
+  81   1          return list->currentSize;
+  82   1      }
+  83          
+  84          int seek_right(struct mf_list *list)
+  85          {
+  86   1          if (list->index == (list->currentSize - 1) || list->currentSize == 0)
+  87   1              return -1;
+  88   1      
+  89   1          list->index++;
+  90   1      
+  91   1          return list->currentSize;
+  92   1      }
+  93          
+  94          unsigned char display_on_led(unsigned int i){
+  95   1        unsigned char led;
+  96   1        switch(i){
+  97   2          case 0:
+  98   2            led = 0xc0;
+  99   2            break;
+ 100   2          case 1:
+ 101   2            led = 0xf9;
+ 102   2            break;
+ 103   2          case 2:
+ 104   2            led = 0xa4;
+ 105   2            break;
+ 106   2          case 3:
+ 107   2            led = 0xb0;
+ 108   2            break;
+ 109   2          case 4:
+ 110   2            led = 0x99;
+ 111   2            break;
+ 112   2          case 5:
+ 113   2            led = 0x92;
+ 114   2            break;
+ 115   2          case 6:
+ 116   2            led = 0x82;
+C51 COMPILER V9.60.0.0   HW1                                                               10/04/2021 19:20:30 PAGE 3   
+
+ 117   2            break;
+ 118   2          case 7:
+ 119   2            led = 0xf8;
+ 120   2            break;
+ 121   2          case 8:
+ 122   2            led = 0x80;
+ 123   2            break;
+ 124   2          case 9: 
+ 125   2            led = 0x90;   
+ 126   2            break;
+ 127   2          default:
+ 128   2            led = 0x00;
+ 129   2        }
+ 130   1          
+ 131   1          return led;
+ 132   1      }
+ 133          
+ 134          int main(void)
+ 135          {
+ 136   1          unsigned int i;
+ 137   1          unsigned int x;
+ 138   1          
+ 139   1          //Initialization of the list
+ 140   1          struct mf_list d1;
+ 141   1          d1.currentSize = 0;
+ 142   1          d1.index = 0;
+ 143   1      
+ 144   1          //Final list after these operations should be [1,3,5,7,9]
+ 145   1          append_left(3, &d1);
+ 146   1          append_right(0xAA, &d1);
+ 147   1          pop_right(&d1);
+ 148   1          append_left(1, &d1);
+ 149   1          append_right(5, &d1);
+ 150   1          append_right(7, &d1);
+ 151   1          append_right(9, &d1);
+ 152   1          pop_left(&d1);
+ 153   1          append_left(1, &d1);
+ 154   1        
+ 155   1      
+ 156   1          //Final index must be (0 + 1 + 1 + 1 - 1) = 2. Can also be seen in memory
+ 157   1          seek_right(&d1);
+ 158   1          seek_right(&d1);
+ 159   1          seek_right(&d1);
+ 160   1          seek_left(&d1);
+ 161   1      
+ 162   1      
+ 163   1          //Displays the array in order
+ 164   1          P1 = 0x00;
+ 165   1      
+ 166   1          while(1){
+ 167   2            for( i = 0; i < length(&d1); i++){
+ 168   3              P1=display_on_led(d1.arr[i]);
+ 169   3              for(x = 0;  x < 20000; x++){} 
+ 170   3            }
+ 171   2          }
+ 172   1      }
+ 173          
+ 174            
+ 175              
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.60.0.0   HW1                                                               10/04/2021 19:20:30 PAGE 4   
+
+   CODE SIZE        =    708    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      22
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

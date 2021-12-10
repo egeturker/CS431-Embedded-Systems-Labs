@@ -1,0 +1,230 @@
+C51 COMPILER V9.60.0.0   HW3                                                               11/11/2021 15:06:25 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE HW3
+OBJECT MODULE PLACED IN .\Objects\hw3.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE hw3.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\hw3.l
+                    -st) TABS(2) OBJECT(.\Objects\hw3.obj)
+
+line level    source
+
+   1          #include "reg51.h"
+   2          #include "inttypes.h"
+   3          #include <stdio.h>
+   4          
+   5          #define BUFFER_SIZE 10
+   6          #define ENTER 0x10
+   7          
+   8          struct buffer{
+   9            uint8_t buff[BUFFER_SIZE];
+  10            uint8_t current_size;
+  11            uint8_t current_index;
+  12            
+  13          };
+  14          
+  15          sbit dac_wr = P0^7;
+  16          
+  17          uint8_t numbers[10]  = {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
+  18          uint8_t out_flag = 0;
+  19          
+  20          void dot(){
+  21   1        int i;
+  22   1        dac_wr = 0;
+  23   1        P1 = 0x34;
+  24   1        for(i = 0; i <20; i++){}
+  25   1        P1 = 0x00;
+  26   1        dac_wr = 1;
+  27   1      }
+  28          
+  29          void dash(){
+  30   1        int i;
+  31   1        dac_wr = 0;
+  32   1        P1 = 0x9a;
+  33   1        for(i = 0; i <20; i++){}
+  34   1        P1 = 0x00;
+  35   1        dac_wr = 1;
+  36   1      }
+  37          
+  38          void decode_morse(uint8_t number){
+  39   1        switch(number){
+  40   2          case 0x31:
+  41   2            dot();
+  42   2            dash();
+  43   2            dash();
+  44   2            dash();
+  45   2            dash();
+  46   2            break;
+  47   2          case 0x32:
+  48   2            dot();
+  49   2            dot();
+  50   2            dash();
+  51   2            dash();
+  52   2            dash();
+  53   2            break;
+  54   2          case 0x33:
+C51 COMPILER V9.60.0.0   HW3                                                               11/11/2021 15:06:25 PAGE 2   
+
+  55   2            dot();
+  56   2            dot();
+  57   2            dot();
+  58   2            dash();
+  59   2            dash();
+  60   2            break;
+  61   2          case 0x34:
+  62   2            dot();
+  63   2            dot();
+  64   2            dot();
+  65   2            dot();
+  66   2            dash();
+  67   2            break;
+  68   2          case 0x35:
+  69   2            dot();
+  70   2            dot();
+  71   2            dot();
+  72   2            dot();
+  73   2            dot();
+  74   2            break;
+  75   2          case 0x36:
+  76   2            dash();
+  77   2            dot();
+  78   2            dot();
+  79   2            dot();
+  80   2            dot();
+  81   2            break;
+  82   2          case 0x37:
+  83   2            dash();
+  84   2            dash();
+  85   2            dot();
+  86   2            dot();
+  87   2            dot();
+  88   2            break;
+  89   2          case 0x38:
+  90   2            dash();
+  91   2            dash(); 
+  92   2            dash();
+  93   2            dot();
+  94   2            dot();
+  95   2            break;
+  96   2          case 0x39:
+  97   2            dash();
+  98   2            dash(); 
+  99   2            dash();
+ 100   2            dash();
+ 101   2            dot();
+ 102   2            break;
+ 103   2          case 0x30:
+ 104   2            dash();
+ 105   2            dash(); 
+ 106   2            dash();
+ 107   2            dash();
+ 108   2            dash();
+ 109   2            break;    
+ 110   2        }
+ 111   1      }
+ 112          
+ 113          void uart_in(struct buffer* b){
+ 114   1        uint8_t i;
+ 115   1          
+ 116   1          if(RI == 1){
+C51 COMPILER V9.60.0.0   HW3                                                               11/11/2021 15:06:25 PAGE 3   
+
+ 117   2            if(out_flag == 1){
+ 118   3                out_flag = 0;
+ 119   3                b->current_size = 0;
+ 120   3                b->current_index = 0;
+ 121   3            }
+ 122   2      
+ 123   2            for(i = 0; i < 10; i++){
+ 124   3              if(numbers[i] == SBUF){
+ 125   4                b->buff[b->current_size] = SBUF;
+ 126   4                RI = 0;
+ 127   4                b->current_size++;
+ 128   4                break;
+ 129   4              }
+ 130   3              if(ENTER == SBUF){
+ 131   4                out_flag = 1;
+ 132   4              }
+ 133   3              RI = 0;
+ 134   3            }
+ 135   2          }
+ 136   1      }
+ 137          
+ 138          void uart_out(struct buffer* b){
+ 139   1          if(out_flag == 1){
+ 140   2              putchar(b->buff[b->current_index]);
+ 141   2              b->current_index++;
+ 142   2            if(b->current_index == b->current_size){
+ 143   3                out_flag = 0;
+ 144   3                b->current_size = 0;
+ 145   3                b->current_index = 0;
+ 146   3            }
+ 147   2          }
+ 148   1      }
+ 149          
+ 150          void uart_echo(){
+ 151   1          uint8_t uart_input;
+ 152   1          if(RI == 1){
+ 153   2            uart_input = SBUF;
+ 154   2            RI = 0;
+ 155   2            SBUF = uart_input;
+ 156   2            TI = 0;
+ 157   2          }
+ 158   1      }
+ 159          
+ 160          void flash_next(struct buffer* b){
+ 161   1          if(out_flag == 1){
+ 162   2            decode_morse(b->buff[b->current_index]);
+ 163   2            b->current_index++;
+ 164   2            if(b->current_index == b->current_size){
+ 165   3                out_flag = 0;
+ 166   3                b->current_size = 0;
+ 167   3                b->current_index = 0;
+ 168   3            }
+ 169   2          }
+ 170   1      }
+ 171          
+ 172          void dac(){
+ 173   1        dac_wr = 0;
+ 174   1        P1 = 0x9a;
+ 175   1        P1 = 0x34;
+ 176   1        
+ 177   1      }
+ 178          
+C51 COMPILER V9.60.0.0   HW3                                                               11/11/2021 15:06:25 PAGE 4   
+
+ 179          void main (void)
+ 180          {
+ 181   1        struct buffer b;
+ 182   1        b.current_size = 0;
+ 183   1        b.current_index = 0;
+ 184   1        
+ 185   1        SCON  = 0x50;                   // UART mode 1  
+ 186   1        TMOD |= 0x20;                   // timer 1 mode 2     
+ 187   1        TH1   = 0xfd;                   // 19200 baud  22.118 mhz clock      
+ 188   1        TR1   = 1;                      // timer 1 run                        
+ 189   1        TI    = 1;                      // UART receive first character 
+ 190   1        
+ 191   1      //Demo to be made in update freq = 20
+ 192   1      while(1)
+ 193   1        {
+ 194   2          uart_in(&b);  
+ 195   2          flash_next(&b);   
+ 196   2          //uart_out(&b);
+ 197   2          //uart_echo();
+ 198   2          //decode_morse(0x31);
+ 199   2        }
+ 200   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    487    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11      15
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
